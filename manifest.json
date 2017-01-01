@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "GitHub Translation",
+  "version": "0.1.0",
+  "description": "translate issues, pull reqeusts and comments",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://github.com/*/*"
+      ],
+      "js": ["translate.js"]
+    }
+  ]
+}
