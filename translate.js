@@ -16,9 +16,22 @@ if (comments.length) {
     }
   });
 
+  const isTranslateButton = (elem) => {
+    return elem.matches('.translate');
+  };
+
+  const closest = (elem, selector) => {
+    for (; elem && elem !== document; elem = elem.parentNode ) {
+      if (elem.matches(selector)) { return elem; }
+    }
+    return null;
+  };
+
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
+    if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
+      const commentBody = closest(event.target, '.timeline-comment-header')
+                            .nextElementSibling.querySelector('.comment-body');
+      const originalText = commentBody.innerHTML;
+    }
   });
-
-
-
 }
