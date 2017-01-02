@@ -27,11 +27,27 @@ if (comments.length) {
     return null;
   };
 
+  const regexpParagraph = /<p>(.+)<\/p>/;
+  const regexpCode = /<p><code>(.*)<\/code><\/p>/;
+  const regexpParagraphWithTag = /<p><\w+?>(.*)<\/\w+?><\/p>/;
+
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = closest(event.target, '.timeline-comment-header')
                             .nextElementSibling.querySelector('.comment-body');
-      const originalText = commentBody.innerHTML;
+
+      const commentParts = commentBody.querySelectorAll('p, div');
+
+      const promises = Array.prototype.map.call(commentParts, (c) => {
+        const html = c.outerHTML;
+        if (regexpCode.test(html) || c.nodeName === 'DIV') { // code block
+          return html;
+        } else if (regexpParagraphWithTag.exec(html)) { // e.g. <p><strong>...</strong></p>
+          return regexpParagraphWithTag.exec(html)[1];
+        } else { // e.g. <p>...</p>
+          return regexpParagraph.exec(html)[1];
+        }
+      });
     }
   });
 }
