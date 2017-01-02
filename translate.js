@@ -1,3 +1,5 @@
+const API_URL = 'https://translation.googleapis.com/language/translate/v2/';
+const API_KEY = '';
 const comments = document.querySelectorAll('.js-comment-container');
 
 if (comments.length) {
@@ -27,9 +29,9 @@ if (comments.length) {
     return null;
   };
 
-  const regexpParagraph = /<p>(.+)<\/p>/;
-  const regexpCode = /<p><code>(.*)<\/code><\/p>/;
-  const regexpParagraphWithTag = /<p><\w+?>(.*)<\/\w+?><\/p>/;
+  const regexpParagraph = /(<p>)(.+)(<\/p>)/;
+  const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
+  const regexpParagraphWithTag = /(<p><\w+?>)(.*)(<\/\w+?><\/p>)/;
 
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
@@ -41,13 +43,49 @@ if (comments.length) {
       const promises = Array.prototype.map.call(commentParts, (c) => {
         const html = c.outerHTML;
         if (regexpCode.test(html) || c.nodeName === 'DIV') { // code block
-          return html;
+          return new Promise((resolve) => resolve(html));
         } else if (regexpParagraphWithTag.exec(html)) { // e.g. <p><strong>...</strong></p>
-          return regexpParagraphWithTag.exec(html)[1];
+          const text = regexpParagraphWithTag.exec(html)[2];
+          return fetch(`${API_URL}?key=${API_KEY}&q=${text}&source=en&target=ko&model=nmt`)
+            .then((response) => {
+              if (response.status !== 200) {
+                console.log(`Google Translation error: ${response.status}`);
+                return;
+              }
+              return response.json();
+            })
+            .then(function(result) {
+              const translated = result.data.translations[0].translatedText;
+              return html.replace(regexpParagraphWithTag, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
+            });
         } else { // e.g. <p>...</p>
-          return regexpParagraph.exec(html)[1];
+          const text = regexpParagraph.exec(html)[2];
+          return fetch(`${API_URL}?key=${API_KEY}&q=${text}&source=en&target=ko&model=nmt`)
+            .then((response) => {
+              if (response.status !== 200) {
+                console.log(`Google Translation error: ${response.status}`);
+                return;
+              }
+              return response.json();
+            })
+            .then(function(result) {
+              const translated = result.data.translations[0].translatedText;
+              return html.replace(regexpParagraph, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
+            });
         }
       });
+
+      Promise.all(promises)
+        .then((html) => {
+          const tr = document.createElement('tr');
+          tr.className = 'd-block';
+          tr.setAttribute('style', 'border-top:1px solid #eee;');
+          tr.innerHTML = `<td class="${commentBody.className}">${html.join('')}</td>`;
+
+          commentBody.parentElement.parentElement.appendChild(tr);
+        }, (reason) => {
+          console.log(reason)
+        });
     }
   });
 }
