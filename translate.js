@@ -31,6 +31,7 @@ if (comments.length) {
   const regexpParagraph = /(<p>)(.+)(<\/p>)/;
   const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
   const regexpParagraphWithTag = /(<p><\w+?>)(.*)(<\/\w+?><\/p>)/;
+  const regexpBlockquote = /(<blockquote><p>)(.*)(<\/p><\/blockquote>)/;
 
   const translate = (text) => {
     const options = {
@@ -54,12 +55,41 @@ if (comments.length) {
       const commentBody = closest(event.target, '.timeline-comment-header')
                             .nextElementSibling.querySelector('.comment-body');
 
-      const commentParts = commentBody.querySelectorAll('p, div');
+      const commentParts = commentBody.parentElement
+                             .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, td>div');
 
       const promises = Array.prototype.map.call(commentParts, (c) => {
-        const html = c.outerHTML;
+        const html = c.outerHTML.replace(/\n/g, '');
+
         if (regexpCode.test(html) || c.nodeName === 'DIV') { // code block
           return new Promise((resolve) => resolve(html));
+        } else if (c.nodeName === 'UL' || c.nodeName === 'OL') { // e.g. <ul><li><p>...</p></li></ul>
+          const items = c.querySelectorAll('li');
+
+          const promises = Array.prototype.map.call(items, (i) => {
+            return translate(i.innerHTML)
+              .then(function(result) {
+                const translated = result.data.translations[0].translatedText;
+                return translated;
+              });
+          });
+
+          return Promise.all(promises)
+            .then((html) => {
+              if (c.nodeName === 'UL') {
+                return `<ul><li>${html.join('</li><li>')}</li></ul>`;
+              } else {
+                return `<ol><li>${html.join('</li><li>')}</li></ol>`;
+              }
+            });
+        } else if (regexpBlockquote.exec(html)) { // e.g. <blockquote><p>...</p></blockquote>
+          const text = regexpBlockquote.exec(html)[2];
+
+          return translate(text)
+            .then(function(result) {
+              const translated = result.data.translations[0].translatedText;
+              return html.replace(regexpBlockquote, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
+            });
         } else if (regexpParagraphWithTag.exec(html)) { // e.g. <p><strong>...</strong></p>
           const text = regexpParagraphWithTag.exec(html)[2];
 
