@@ -1,4 +1,3 @@
-const API_URL = 'https://translation.googleapis.com/language/translate/v2/';
 const API_KEY = '';
 const comments = document.querySelectorAll('.js-comment-container');
 
@@ -33,6 +32,23 @@ if (comments.length) {
   const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
   const regexpParagraphWithTag = /(<p><\w+?>)(.*)(<\/\w+?><\/p>)/;
 
+  const translate = (text) => {
+    const options = {
+      method: 'POST',
+      body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=en&target=ko&model=nmt`,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+    };
+
+    return fetch(`https://translation.googleapis.com/language/translate/v2/`, options)
+      .then((response) => {
+        if (response.status !== 200) {
+          console.log(`Google Translation error: ${response.status}`);
+          return;
+        }
+        return response.json();
+      });
+  };
+
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = closest(event.target, '.timeline-comment-header')
@@ -46,28 +62,16 @@ if (comments.length) {
           return new Promise((resolve) => resolve(html));
         } else if (regexpParagraphWithTag.exec(html)) { // e.g. <p><strong>...</strong></p>
           const text = regexpParagraphWithTag.exec(html)[2];
-          return fetch(`${API_URL}?key=${API_KEY}&q=${text}&source=en&target=ko&model=nmt`)
-            .then((response) => {
-              if (response.status !== 200) {
-                console.log(`Google Translation error: ${response.status}`);
-                return;
-              }
-              return response.json();
-            })
+
+          return translate(text)
             .then(function(result) {
               const translated = result.data.translations[0].translatedText;
               return html.replace(regexpParagraphWithTag, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
             });
         } else { // e.g. <p>...</p>
           const text = regexpParagraph.exec(html)[2];
-          return fetch(`${API_URL}?key=${API_KEY}&q=${text}&source=en&target=ko&model=nmt`)
-            .then((response) => {
-              if (response.status !== 200) {
-                console.log(`Google Translation error: ${response.status}`);
-                return;
-              }
-              return response.json();
-            })
+
+          return translate(text)
             .then(function(result) {
               const translated = result.data.translations[0].translatedText;
               return html.replace(regexpParagraph, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
