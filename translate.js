@@ -50,6 +50,16 @@ if (comments.length) {
       });
   };
 
+  const translateAndRestoreHTML = (regexp, html) => {
+    const text = regexp.exec(html)[2];
+
+    return translate(text)
+      .then(function(result) {
+        const translated = result.data.translations[0].translatedText;
+        return html.replace(regexp, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
+      });
+  };
+
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = closest(event.target, '.timeline-comment-header')
@@ -83,29 +93,11 @@ if (comments.length) {
               }
             });
         } else if (regexpBlockquote.exec(html)) { // e.g. <blockquote><p>...</p></blockquote>
-          const text = regexpBlockquote.exec(html)[2];
-
-          return translate(text)
-            .then(function(result) {
-              const translated = result.data.translations[0].translatedText;
-              return html.replace(regexpBlockquote, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
-            });
+          return translateAndRestoreHTML(regexpBlockquote, html);
         } else if (regexpParagraphWithTag.exec(html)) { // e.g. <p><strong>...</strong></p>
-          const text = regexpParagraphWithTag.exec(html)[2];
-
-          return translate(text)
-            .then(function(result) {
-              const translated = result.data.translations[0].translatedText;
-              return html.replace(regexpParagraphWithTag, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
-            });
+          return translateAndRestoreHTML(regexpParagraphWithTag, html);
         } else { // e.g. <p>...</p>
-          const text = regexpParagraph.exec(html)[2];
-
-          return translate(text)
-            .then(function(result) {
-              const translated = result.data.translations[0].translatedText;
-              return html.replace(regexpParagraph, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
-            });
+          return translateAndRestoreHTML(regexpParagraph, html);
         }
       });
 
