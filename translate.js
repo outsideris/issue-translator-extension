@@ -66,13 +66,21 @@ if (comments.length) {
                             .nextElementSibling.querySelector('.comment-body');
 
       const commentParts = commentBody.parentElement
-                             .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, td>div');
+                             .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, td>div.highlight, td>div.email-fragment');
 
       const promises = Array.prototype.map.call(commentParts, (c) => {
         const html = c.outerHTML.replace(/\n/g, '');
 
-        if (regexpCode.test(html) || c.nodeName === 'DIV') { // code block
+        if (regexpCode.test(html) || c.matches('div.highlight')) { // code block
           return new Promise((resolve) => resolve(html));
+        } else if (c.matches('div.email-fragment')) { // e.g. <div class="email-fragment>...</div>
+          const text = c.innerHTML;
+
+          return translate(text)
+            .then(function(result) {
+              const translated = result.data.translations[0].translatedText;
+              return `<div>${translated}</div>`;
+            });
         } else if (c.nodeName === 'UL' || c.nodeName === 'OL') { // e.g. <ul><li><p>...</p></li></ul>
           const items = c.querySelectorAll('li');
 
