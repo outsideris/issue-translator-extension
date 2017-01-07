@@ -40,11 +40,6 @@ const enableTranslation = () => {
     return null;
   };
 
-  const regexpParagraph = /(<p>)(.+)(<\/p>)/;
-  const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
-  const regexpParagraphWithTag = /(<p><\w+?>)(.*)(<\/\w+?><\/p>)/;
-  const regexpBlockquote = /(<blockquote><p>)(.*)(<\/p><\/blockquote>)/;
-
   const translate = (text) => {
     const options = {
       method: 'POST',
@@ -62,29 +57,22 @@ const enableTranslation = () => {
       });
   };
 
-  const translateAndRestoreHTML = (regexp, html) => {
-    const text = regexp.exec(html)[2];
-
-    return translate(text)
-      .then(function(result) {
-        const translated = result.data.translations[0].translatedText;
-        return html.replace(regexp, (match, p1, p2, p3) => `${p1}${translated}${p3}`);
-      });
-  };
-
+  const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = closest(event.target, '.timeline-comment-header')
                             .nextElementSibling.querySelector('.comment-body');
 
       const commentParts = commentBody.parentElement
-                             .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, td>div.highlight, td>div.email-fragment');
+                             .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, ' +
+                               'td>div.highlight, td>pre, td>div.email-fragment, ' +
+                               'td>h1, td>h2, td>h3, td>h4, td>h5, td>h6');
 
       const promises = Array.prototype.map.call(commentParts, (c) => {
         const html = c.outerHTML.replace(/\n/g, '');
 
-        if (regexpCode.test(html) || c.matches('div.highlight')) { // code block
-          return new Promise((resolve) => resolve(html));
+        if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight')) { // code block
+          return new Promise((resolve) => resolve(c.outerHTML));
         } else if (c.matches('div.email-fragment')) { // e.g. <div class="email-fragment>...</div>
           const text = c.innerHTML;
 
@@ -106,18 +94,21 @@ const enableTranslation = () => {
 
           return Promise.all(promises)
             .then((html) => {
-              if (c.nodeName === 'UL') {
+              if (c.matches('ul')) {
                 return `<ul><li>${html.join('</li><li>')}</li></ul>`;
               } else {
                 return `<ol><li>${html.join('</li><li>')}</li></ol>`;
               }
             });
-        } else if (regexpBlockquote.exec(html)) { // e.g. <blockquote><p>...</p></blockquote>
-          return translateAndRestoreHTML(regexpBlockquote, html);
-        } else if (regexpParagraphWithTag.exec(html)) { // e.g. <p><strong>...</strong></p>
-          return translateAndRestoreHTML(regexpParagraphWithTag, html);
-        } else { // e.g. <p>...</p>
-          return translateAndRestoreHTML(regexpParagraph, html);
+        } else { // other tags
+          const tag = c.nodeName.toLowerCase();
+          const text = c.innerHTML;
+
+          return translate(text)
+            .then(function(result) {
+              const translated = result.data.translations[0].translatedText;
+              return `<${tag}>${translated}</${tag}>`;
+            });
         }
       });
 
