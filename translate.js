@@ -57,6 +57,31 @@ const enableTranslation = () => {
       });
   };
 
+  const translateHTML = (c) => {
+    const html = c.outerHTML.replace(/\n/g, '');
+
+    if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight') || c.matches('table')) { // code block
+      return new Promise((resolve) => resolve(c.outerHTML));
+    } else if (c.matches('div.email-fragment')) { // e.g. <div class="email-fragment>...</div>
+      const text = c.innerHTML.replace(/<br>/g, ' ');
+
+      return translate(text)
+        .then(function(result) {
+          const translated = result.data.translations[0].translatedText;
+          return `<div>${translated}</div>`;
+        });
+    } else { // other tags
+      const tag = c.nodeName.toLowerCase();
+      const text = c.innerHTML.replace(/<br>/g, ' ');
+
+      return translate(text)
+        .then(function(result) {
+          const translated = result.data.translations[0].translatedText;
+          return `<${tag}>${translated}</${tag}>`;
+        });
+    }
+  };
+
   const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
@@ -65,52 +90,26 @@ const enableTranslation = () => {
 
       const commentParts = commentBody.parentElement
                              .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, ' +
-                               'td>div.highlight, td>pre, td>div.email-fragment, ' +
+                               'td>div.highlight, td>pre, td>div.email-fragment, td>table, ' +
                                'td>h1, td>h2, td>h3, td>h4, td>h5, td>h6');
 
-      const promises = Array.prototype.map.call(commentParts, (c) => {
-        const html = c.outerHTML.replace(/\n/g, '');
+      const generatePromises = (comments, index=1, accum=[]) => {
+        const c = comments.splice(0, 1)[0]; // head
+        if (!c) { return accum; }
 
-        if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight')) { // code block
-          return new Promise((resolve) => resolve(c.outerHTML));
-        } else if (c.matches('div.email-fragment')) { // e.g. <div class="email-fragment>...</div>
-          const text = c.innerHTML;
+        accum.push(new Promise((resolve, reject) => {
+          // make some delay because the maximum rate limit of Google API is 10 qps per IP address.
+          // Otherwise Google return 403 with userRateLimitExceeded error.
+          const delay = (index/10) * 1000;
+          setTimeout(resolve, delay);
+        }).then(() => {
+          return translateHTML(c);
+        }));
 
-          return translate(text)
-            .then(function(result) {
-              const translated = result.data.translations[0].translatedText;
-              return `<div>${translated}</div>`;
-            });
-        } else if (c.matches('ul') || c.matches('ol')) { // e.g. <ul><li><p>...</p></li></ul>
-          const items = c.querySelectorAll('li');
+        return generatePromises(comments, ++index, accum);
+      }
 
-          const promises = Array.prototype.map.call(items, (i) => {
-            return translate(i.innerHTML)
-              .then(function(result) {
-                const translated = result.data.translations[0].translatedText;
-                return translated;
-              });
-          });
-
-          return Promise.all(promises)
-            .then((html) => {
-              if (c.matches('ul')) {
-                return `<ul><li>${html.join('</li><li>')}</li></ul>`;
-              } else {
-                return `<ol><li>${html.join('</li><li>')}</li></ol>`;
-              }
-            });
-        } else { // other tags
-          const tag = c.nodeName.toLowerCase();
-          const text = c.innerHTML;
-
-          return translate(text)
-            .then(function(result) {
-              const translated = result.data.translations[0].translatedText;
-              return `<${tag}>${translated}</${tag}>`;
-            });
-        }
-      });
+      const promises = generatePromises([].slice.call(commentParts));
 
       Promise.all(promises)
         .then((html) => {
