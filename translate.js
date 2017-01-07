@@ -60,16 +60,9 @@ const enableTranslation = () => {
   const translateHTML = (c) => {
     const html = c.outerHTML.replace(/\n/g, '');
 
-    if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight') || c.matches('table')) { // code block
+    if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight') ||
+        c.matches('table') || c.matches('hr')) {
       return new Promise((resolve) => resolve(c.outerHTML));
-    } else if (c.matches('div.email-fragment')) { // e.g. <div class="email-fragment>...</div>
-      const text = c.innerHTML.replace(/<br>/g, ' ');
-
-      return translate(text)
-        .then(function(result) {
-          const translated = result.data.translations[0].translatedText;
-          return `<div>${translated}</div>`;
-        });
     } else { // other tags
       const tag = c.nodeName.toLowerCase();
       const text = c.innerHTML.replace(/<br>/g, ' ');
@@ -91,7 +84,7 @@ const enableTranslation = () => {
       const commentParts = commentBody.parentElement
                              .querySelectorAll('td>p, td>ul, td>ol, td>blockquote, ' +
                                'td>div.highlight, td>pre, td>div.email-fragment, td>table, ' +
-                               'td>h1, td>h2, td>h3, td>h4, td>h5, td>h6');
+                               'td>h1, td>h2, td>h3, td>h4, td>h5, td>h6, td>hr');
 
       const generatePromises = (comments, index=1, accum=[]) => {
         const c = comments.splice(0, 1)[0]; // head
