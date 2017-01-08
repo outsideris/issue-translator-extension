@@ -1,1 +1,7 @@
-= GitHub Translaton Chrome extension
+= Issue Translator for GitHub
+
+Chrome extension - Translates issues, pull requests and comments on GitHub for non-English-based programmers
+
+== Credits
+Icon made by link:http://www.flaticon.com/authors/freepik[Freepik]
+from link:www.flaticon.com[http://www.flaticon.com/authors/freepik]
