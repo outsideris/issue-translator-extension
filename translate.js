@@ -1,9 +1,12 @@
 let API_KEY = '';
+let LANGUAGE = '';
 
 chrome.storage.sync.get({
-  token: ''
+  token: '',
+  lang: 'ko'
 }, function(items) {
   API_KEY = items.token;
+  LANGUAGE = items.lang;
   if (!API_KEY) {
     console.error('There is no API key in options for GitHub Translation.');
   } else {
@@ -65,7 +68,7 @@ const enableTranslation = () => {
   const translate = (text) => {
     const options = {
       method: 'POST',
-      body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=en&target=ko&model=nmt`,
+      body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=en&target=${LANGUAGE}&model=nmt`,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
     };
 
