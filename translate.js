@@ -97,26 +97,18 @@ const enableTranslation = () => {
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = findCommentBody(event.target);
-
       const commentParts = commentBody.parentElement.querySelectorAll(markdownTagSelector());
 
-      const generatePromises = (comments, index=1, accum=[]) => {
-        const c = comments.splice(0, 1)[0]; // head
-        if (!c) { return accum; }
-
-        accum.push(new Promise((resolve, reject) => {
+      const promises = Array.prototype.map.call(commentParts, (c, index) => {
+        return new Promise((resolve, reject) => {
           // make some delay because the maximum rate limit of Google API is 10 qps per IP address.
           // Otherwise Google return 403 with userRateLimitExceeded error.
           const delay = (index/10) * 1000;
           setTimeout(resolve, delay);
         }).then(() => {
           return translateHTML(c);
-        }));
-
-        return generatePromises(comments, ++index, accum);
-      }
-
-      const promises = generatePromises([].slice.call(commentParts));
+        });
+      });
 
       Promise.all(promises)
         .then((html) => {
