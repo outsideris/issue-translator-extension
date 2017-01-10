@@ -12,7 +12,7 @@
       "matches": [
         "https://github.com/*/*"
       ],
-      "js": ["translate.js"]
+      "js": ["lib/to-markdown.js", "lib/markdown-it.min.js", "translate.js"]
     }
   ],
   "options_ui": {
