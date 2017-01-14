@@ -14,7 +14,6 @@ chrome.storage.sync.get({
   }
 });
 
-// if (comments.length && API_KEY) {
 const enableTranslation = () => {
   const comments = document.querySelectorAll('.js-comment-container');
   if (!comments.length) { return; }
@@ -68,8 +67,8 @@ const enableTranslation = () => {
   const translate = (text) => {
     const options = {
       method: 'POST',
-      body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=en&target=${LANGUAGE}&model=nmt`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+      body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=en&target=${LANGUAGE}&model=nmt&format=text`, // `format=text` keeps new line characters
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8;' }
     };
 
     return fetch(`https://translation.googleapis.com/language/translate/v2/`, options)
@@ -82,6 +81,7 @@ const enableTranslation = () => {
       });
   };
 
+  const md = window.markdownit();
   const translateHTML = (c) => {
     const html = c.outerHTML.replace(/\n/g, '');
 
@@ -89,24 +89,43 @@ const enableTranslation = () => {
         c.matches('table') || c.matches('hr')) {
       return new Promise((resolve) => resolve(c.outerHTML));
     } else { // other tags
-      const tag = c.nodeName.toLowerCase();
-      const text = c.innerHTML.replace(/<br>/g, ' ');
+      let markdownText = toMarkdown(c.outerHTML.replace(/<br>/g, ''), {gfm: true});
 
-      return translate(text)
+      // Google Translate handle `[text](link)` as an weird way.
+      // e.g. when the link contains anchor like `url#xxx`, it will be separated like `[text](url) # xxx`
+      // So, this save the links and then replace it as index numbers like `[text](1)` or `[text](2)`.
+      // And then, restore it later.
+      const links = markdownText.match(regexpMarkdownLink)
+                      .map(link => link.replace(regexpMarkdownLink, (matched, $1, $2) => $2) );
+
+      let index = 0;
+      markdownText = markdownText.replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
+        return `${$1}${index++}${$3}`;
+      });
+
+      return translate(markdownText)
         .then(function(result) {
-          const translated = result.data.translations[0].translatedText;
-          return `<${tag}>${translated}</${tag}>`;
+          const translated = result.data.translations[0].translatedText
+                               // Normalizing text because Google insert/remove an whitespace.
+                               // `[]()` changed to `[] ()`, so this remove the whitespace.
+                               .replace(/(.*?)(\[.+?\])\s(\(.+?\))(.*?)/g, '$1$2$3$4')
+                               // `> * text` changed to `> *text`, so this add an whitespace.
+                               .replace(/(>\s\*)([^\s\\])/g, '$1 $2')
+                               // restore links
+                               .replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
+                                 return `${$1}${links[$2]}${$3}`;
+                               });
+          return md.render(translated);
         });
     }
   };
 
-  const regexpCode = /(<p><code>)(.*)(<\/code><\/p>)/;
   document.querySelector('.js-discussion').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = findCommentBody(event.target);
       const commentParts = commentBody.parentElement.querySelectorAll(markdownTagSelector());
 
-      const promises = Array.prototype.map.call(commentParts, (c, index) => {
+      const promises = [...commentParts].map((c, index) => {
         return new Promise((resolve, reject) => {
           // make some delay because the maximum rate limit of Google API is 10 qps per IP address.
           // Otherwise Google return 403 with userRateLimitExceeded error.
