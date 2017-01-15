@@ -81,7 +81,13 @@ const enableTranslation = () => {
       });
   };
 
-  const md = window.markdownit();
+  const regexpCode = /^(<p><code>)(.*)(<\/code><\/p>$)/;
+  const regexpMarkdownLink = /(\[.+?\]\()(.+?)(\))/g;
+  const regexpMarkdownImage = /(!\[.+?\]\()(.+?)(\))/g;
+
+  const IMAGE_PLACEHOLDER = 'chrome-extension-it4g-img';
+
+  const md = window.markdownit({html: true});
   const translateHTML = (c) => {
     const html = c.outerHTML.replace(/\n/g, '');
 
@@ -91,21 +97,32 @@ const enableTranslation = () => {
     } else { // other tags
       let markdownText = toMarkdown(c.outerHTML.replace(/<br>/g, ''), {gfm: true});
 
+      let isList = c.matches('ol, ul');
+
+      // Keep images, `![]()`, in advanced and replace it with placeholder, because of it isn't needed to translate.
+      const images = markdownText.match(regexpMarkdownImage);
+      if (images) {
+        let index = 0;
+        markdownText = markdownText.replace(regexpMarkdownImage, `${IMAGE_PLACEHOLDER}${index++}`);
+      }
+
       // Google Translate handle `[text](link)` as an weird way.
       // e.g. when the link contains anchor like `url#xxx`, it will be separated like `[text](url) # xxx`
       // So, this save the links and then replace it as index numbers like `[text](1)` or `[text](2)`.
       // And then, restore it later.
-      const links = markdownText.match(regexpMarkdownLink)
-                      .map(link => link.replace(regexpMarkdownLink, (matched, $1, $2) => $2) );
+      let links = markdownText.match(regexpMarkdownLink)
+      if (links) {
+        links = links.map(link => link.replace(regexpMarkdownLink, (matched, $1, $2) => $2) );
 
-      let index = 0;
-      markdownText = markdownText.replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
-        return `${$1}${index++}${$3}`;
-      });
+        let index = 0;
+        markdownText = markdownText.replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
+          return `${$1}${index++}${$3}`;
+        });
+      }
 
       return translate(markdownText)
         .then(function(result) {
-          const translated = result.data.translations[0].translatedText
+          let translated = result.data.translations[0].translatedText
                                // Normalizing text because Google insert/remove an whitespace.
                                // `[]()` changed to `[] ()`, so this remove the whitespace.
                                .replace(/(.*?)(\[.+?\])\s(\(.+?\))(.*?)/g, '$1$2$3$4')
@@ -114,7 +131,32 @@ const enableTranslation = () => {
                                // restore links
                                .replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
                                  return `${$1}${links[$2]}${$3}`;
-                               });
+                               })
+                               // restore images
+                               .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1])
+                               // `<tag attr1 = "t"attr2 = "t">` to `<tag attr1 = "t" attr2 = "t">`
+                               .replace(/<.+?<\//g, (matched) =>
+                                 matched.replace(/(\w")(\w)/g, (m, $1, $2) => `${$1} ${$2}`)
+                               )
+                               // `</ tag>` to `</tag>`
+                               .replace(/(<\/)\s([\w-]+>)/g, '$1$2')
+                               // sometimes, a trailing whitespace for heading, `#### title`, is removed, so this insert it.
+                               .replace(/(^#{1,6})([^\s^#\\])/g, '$1 $2')
+                               // remove whitespaces from `** text **` or `__ text __`
+                               .replace(/([\*\_]{2})\s(.+?)\s([\*\_]{2})/g, '$1$2$3')
+                               // remove whitespaces from `~~text ~~`
+                               .replace(/([\~]{2})\s?(.+?)\s?([\~]{2})/g, '$1$2$3')
+                               // sometimes `</g-emoji>` become like `</ g - emoji>`
+                               .replace(/(<\/)\s+(g)\s+(-)\s+?(emoji)/g, '$1$2$3$4')
+                               // In sub-list, Google API returns non-breaking spaces instead speaces.
+                               .replace(new RegExp(String.fromCharCode(160), 'g'), ' ')
+                               // sometimes, Google makes a backtick to double backtick
+                               .replace(/``/g, '`');
+          if (isList) {
+            // keep a trailing whitespace in list
+            translated = translated.replace(/([0-9]+\.)(`)/g, '$1 $2')
+                                   .replace(/(\*)(`)/g, '$1 $2');
+          }
           return md.render(translated);
         });
     }
