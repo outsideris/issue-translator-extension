@@ -4,16 +4,36 @@
   "description": "Issue Translator for GitHub",
   "main": "background.js",
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "markdown-it": "^8.2.2",
+    "to-markdown": "^3.0.3"
+  },
   "devDependencies": {
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
     "chai": "^3.5.0",
+    "cpy-cli": "^1.0.1",
     "karma": "^1.4.0",
     "karma-chrome-launcher": "^2.0.0",
     "karma-mocha": "^1.3.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "npm-run-all": "^4.0.1",
+    "rimraf": "^2.5.4",
+    "webpack": "^2.2.0",
+    "webpack-validator": "^2.3.0"
   },
   "scripts": {
-    "test": "karma start"
+    "test": "karma start",
+    "validate": "npm-run-all --parallel validate-webpack:*",
+    "validate-webpack:dev": "webpack-validator webpack.config.js --env.dev",
+    "validate-webpack:prod": "webpack-validator webpack.config.js --env.prod",
+    "build": "webpack --env.dev",
+    "build:prod": "webpack --env.prod -p",
+    "clean": "rimraf dist",
+    "copy-files": "cpy src/background.js src/manifest.json src/options.html src/options.js icons/*.png dist",
+    "prebuild": "npm run clean && npm run copy-files",
+    "prebuild:prod": "npm run clean && npm run copy-files"
   },
   "repository": {
     "type": "git",

@@ -1,3 +1,6 @@
+import markdownit from 'markdown-it';
+import toMarkdown from 'to-markdown';
+
 let API_KEY = '';
 let LANGUAGE = '';
 
@@ -87,7 +90,7 @@ const enableTranslation = () => {
 
   const IMAGE_PLACEHOLDER = 'chrome-extension-it4g-img';
 
-  const md = window.markdownit({html: true});
+  const md = markdownit({html: true});
   const translateHTML = (c) => {
     const html = c.outerHTML.replace(/\n/g, '');
 

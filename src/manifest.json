@@ -1,18 +1,18 @@
 {
   "manifest_version": 2,
   "name": "Issues translator for GitHub",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Translate issues, pull requests and comments on GitHub",
   "homepage_url": "https://github.com/outsideris/issue-translator-extention",
   "icons": {
-    "128": "icons/translation-128.png"
+    "128": "translation-128.png"
   },
   "content_scripts": [
     {
       "matches": [
         "https://github.com/*/*"
       ],
-      "js": ["lib/to-markdown.js", "lib/markdown-it.min.js", "translate.js"]
+      "js": ["issue-translator.js"]
     }
   ],
   "options_ui": {
