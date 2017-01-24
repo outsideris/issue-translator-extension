@@ -2,6 +2,26 @@
 
 Chrome extension - Translates issues, pull requests and comments on GitHub for non-English-based programmers
 
+== Development
+To build for testing, run following command:
+
+----
+$ npm run build
+----
+
+It makes built files in `dist/`, so you should import `dist/` directory in your Chrome browser.
+
+And run following command for unit testing.
+----
+$ npm test
+----
+
+== Production
+To build for production, run following command:
+----
+$ npm run build:prod
+----
+
 == Credits
 Icon made by link:http://www.flaticon.com/authors/freepik[Freepik]
 from link:www.flaticon.com[http://www.flaticon.com/authors/freepik]
