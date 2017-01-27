@@ -5,9 +5,6 @@ const md = markdownit({html: true});
 
 const regexpCode = /^(<p><code>)(.*)(<\/code><\/p>$)/;
 const regexpMarkdownLink = /(\[.+?\]\()(.+?)(\))/g;
-const regexpMarkdownImage = /(!\[.+?\]\()(.+?)(\))/g;
-
-const IMAGE_PLACEHOLDER = 'chrome-extension-it4g-img';
 
 const isTranslateButton = (elem) => {
   return elem.matches('.translate');
@@ -74,20 +71,45 @@ const translate = (text, API_KEY, LANGUAGE) => {
     });
 };
 
-export function normalizeMarkdownSyntax(text, links, images) {
-  console.log(text);
+const convertTextToMarkdown = (text) => toMarkdown(text.replace(/<br>/g, ''), {gfm: true});
+
+const regexpMarkdownImage = /(!\[.+?\]\()(.+?)(\))/g;
+const IMAGE_PLACEHOLDER = 'chrome-extension-it4g-img';
+const LINK_PLACEHOLDER = 'chrome-extension-it4g-link';
+export function extractImagesAndLinks(markdownText) {
+  let replacedMarkdownText = markdownText;
+  // Keep images, `![]()`, in advanced and replace it with placeholder, because of it isn't needed to translate.
+  const images = replacedMarkdownText.match(regexpMarkdownImage);
+
+  if (images) {
+    let count = 0;
+    replacedMarkdownText = replacedMarkdownText.replace(regexpMarkdownImage, () => `${IMAGE_PLACEHOLDER}${count++}`);
+  }
+
+  // Google Translate handle `[text](link)` as an weird way.
+  // e.g. when the link contains anchor like `url#xxx`, it will be separated like `[text](url) # xxx`
+  // So, this save the links and then replace it as index numbers like `[text](1)` or `[text](2)`.
+  // And then, restore it later.
+  let links = replacedMarkdownText.match(regexpMarkdownLink)
+  if (links) {
+    links = links.map(link => link.replace(regexpMarkdownLink, (matched, $1, $2) => $2) );
+
+    let count = 0;
+    replacedMarkdownText = replacedMarkdownText.replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
+      return `${$1}${LINK_PLACEHOLDER}${count++}${$3}`;
+    });
+  }
+
+  return {replacedMarkdownText, images, links};
+};
+
+export function normalizeMarkdownSyntax(text) {
   return text
     // Normalizing text because Google insert/remove an whitespace.
     // `[]()` changed to `[] ()`, so this remove the whitespace.
     .replace(/(.*?)(\[.+?\])\s(\(.+?\))(.*?)/g, '$1$2$3$4')
     // `> * text` changed to `> *text`, so this add an whitespace.
     .replace(/(>\s\*)([^\s\\])/g, '$1 $2')
-    // restore links
-    .replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
-     return `${$1}${links[$2]}${$3}`;
-    })
-    // restore images
-    .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1])
     // `<tag attr1 = "t"attr2 = "t">` to `<tag attr1 = "t" attr2 = "t">`
     .replace(/<.+?<\/?/g, (matched) => matched.replace(/(\w")(\w)/g, (m, $1, $2) => `${$1} ${$2}`))
     // `</ tag>` to `</tag>`
@@ -106,6 +128,16 @@ export function normalizeMarkdownSyntax(text, links, images) {
     .replace(/``/g, '`');
 };
 
+export function restoreImagesAndLinks(text, links = [], images = []) {
+  return text
+    // restore links
+    .replace(regexpMarkdownLink, (mached, $1, $2, $3) =>
+      `${$1}${links[$2.replace(new RegExp(`${LINK_PLACEHOLDER}([0-9]+)`, 'g'), '$1')]}${$3}`
+    )
+    // restore images
+    .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1]);
+};
+
 const translateHTML = (c, API_KEY, LANGUAGE) => {
   const html = c.outerHTML.replace(/\n/g, '');
 
@@ -113,36 +145,14 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
       c.matches('table') || c.matches('hr')) {
     return new Promise((resolve) => resolve(c.outerHTML));
   } else { // other tags
-    let markdownText = toMarkdown(c.outerHTML.replace(/<br>/g, ''), {gfm: true});
+    const {replacedMarkdownText, images, links} = extractImagesAndLinks(convertTextToMarkdown(c.outerHTML));
 
-    let isList = c.matches('ol, ul');
-
-    // Keep images, `![]()`, in advanced and replace it with placeholder, because of it isn't needed to translate.
-    const images = markdownText.match(regexpMarkdownImage);
-    if (images) {
-      let index = 0;
-      markdownText = markdownText.replace(regexpMarkdownImage, `${IMAGE_PLACEHOLDER}${index++}`);
-    }
-
-    // Google Translate handle `[text](link)` as an weird way.
-    // e.g. when the link contains anchor like `url#xxx`, it will be separated like `[text](url) # xxx`
-    // So, this save the links and then replace it as index numbers like `[text](1)` or `[text](2)`.
-    // And then, restore it later.
-    let links = markdownText.match(regexpMarkdownLink)
-    if (links) {
-      links = links.map(link => link.replace(regexpMarkdownLink, (matched, $1, $2) => $2) );
-
-      let index = 0;
-      markdownText = markdownText.replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
-        return `${$1}${index++}${$3}`;
-      });
-    }
-
-    return translate(markdownText, API_KEY, LANGUAGE)
+    return translate(replacedMarkdownText, API_KEY, LANGUAGE)
       .then(function(result) {
-        let translated = normalizeMarkdownSyntax(result.data.translations[0].translatedText, links, images);
+        let translated = normalizeMarkdownSyntax(result.data.translations[0].translatedText);
+        translated = restoreImagesAndLinks(translated, links, images);
 
-        if (isList) {
+        if (c.matches('ol, ul')) {
           // keep a trailing whitespace in list
           translated = translated.replace(/([0-9]+\.)(`)/g, '$1 $2')
                                  .replace(/(\*)(`)/g, '$1 $2');
