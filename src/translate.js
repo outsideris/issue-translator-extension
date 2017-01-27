@@ -74,6 +74,38 @@ const translate = (text, API_KEY, LANGUAGE) => {
     });
 };
 
+export function normalizeMarkdownSyntax(text, links, images) {
+  console.log(text);
+  return text
+    // Normalizing text because Google insert/remove an whitespace.
+    // `[]()` changed to `[] ()`, so this remove the whitespace.
+    .replace(/(.*?)(\[.+?\])\s(\(.+?\))(.*?)/g, '$1$2$3$4')
+    // `> * text` changed to `> *text`, so this add an whitespace.
+    .replace(/(>\s\*)([^\s\\])/g, '$1 $2')
+    // restore links
+    .replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
+     return `${$1}${links[$2]}${$3}`;
+    })
+    // restore images
+    .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1])
+    // `<tag attr1 = "t"attr2 = "t">` to `<tag attr1 = "t" attr2 = "t">`
+    .replace(/<.+?<\/?/g, (matched) => matched.replace(/(\w")(\w)/g, (m, $1, $2) => `${$1} ${$2}`))
+    // `</ tag>` to `</tag>`
+    .replace(/(<\/)\s([\w-]+>)/g, '$1$2')
+    // sometimes, a trailing whitespace for heading, `#### title`, is removed, so this insert it.
+    .replace(/(^#{1,6})([^\s^#\\])/g, '$1 $2')
+    // remove whitespaces from `** text **` or `__ text __`
+    .replace(/([\*\_]{2})\s(.+?)\s([\*\_]{2})/g, '$1$2$3')
+    // remove whitespaces from `~~text ~~`
+    .replace(/([\~]{2})\s?(.+?)\s?([\~]{2})/g, '$1$2$3')
+    // sometimes `</g-emoji>` become like `</ g - emoji>`
+    .replace(/(<\/)\s+(g)\s+(-)\s+?(emoji)/g, '$1$2$3$4')
+    // In sub-list, Google API returns non-breaking spaces instead speaces.
+    .replace(new RegExp(String.fromCharCode(160), 'g'), ' ')
+    // sometimes, Google makes a backtick to double backtick
+    .replace(/``/g, '`');
+};
+
 const translateHTML = (c, API_KEY, LANGUAGE) => {
   const html = c.outerHTML.replace(/\n/g, '');
 
@@ -108,36 +140,8 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
 
     return translate(markdownText, API_KEY, LANGUAGE)
       .then(function(result) {
-        let translated = result.data.translations[0].translatedText
-                             // Normalizing text because Google insert/remove an whitespace.
-                             // `[]()` changed to `[] ()`, so this remove the whitespace.
-                             .replace(/(.*?)(\[.+?\])\s(\(.+?\))(.*?)/g, '$1$2$3$4')
-                             // `> * text` changed to `> *text`, so this add an whitespace.
-                             .replace(/(>\s\*)([^\s\\])/g, '$1 $2')
-                             // restore links
-                             .replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
-                               return `${$1}${links[$2]}${$3}`;
-                             })
-                             // restore images
-                             .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1])
-                             // `<tag attr1 = "t"attr2 = "t">` to `<tag attr1 = "t" attr2 = "t">`
-                             .replace(/<.+?<\//g, (matched) =>
-                               matched.replace(/(\w")(\w)/g, (m, $1, $2) => `${$1} ${$2}`)
-                             )
-                             // `</ tag>` to `</tag>`
-                             .replace(/(<\/)\s([\w-]+>)/g, '$1$2')
-                             // sometimes, a trailing whitespace for heading, `#### title`, is removed, so this insert it.
-                             .replace(/(^#{1,6})([^\s^#\\])/g, '$1 $2')
-                             // remove whitespaces from `** text **` or `__ text __`
-                             .replace(/([\*\_]{2})\s(.+?)\s([\*\_]{2})/g, '$1$2$3')
-                             // remove whitespaces from `~~text ~~`
-                             .replace(/([\~]{2})\s?(.+?)\s?([\~]{2})/g, '$1$2$3')
-                             // sometimes `</g-emoji>` become like `</ g - emoji>`
-                             .replace(/(<\/)\s+(g)\s+(-)\s+?(emoji)/g, '$1$2$3$4')
-                             // In sub-list, Google API returns non-breaking spaces instead speaces.
-                             .replace(new RegExp(String.fromCharCode(160), 'g'), ' ')
-                             // sometimes, Google makes a backtick to double backtick
-                             .replace(/``/g, '`');
+        let translated = normalizeMarkdownSyntax(result.data.translations[0].translatedText, links, images);
+
         if (isList) {
           // keep a trailing whitespace in list
           translated = translated.replace(/([0-9]+\.)(`)/g, '$1 $2')
