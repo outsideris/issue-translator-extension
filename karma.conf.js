@@ -11,8 +11,14 @@ module.exports = function(config) {
       'background.js'
     ],
     preprocessors: {
-      'src/**/*.js': ['webpack'],
-      'test/**/*.js': ['webpack']
+      'src/**/*.js': ['webpack', 'sourcemap'],
+      'test/**/*.js': ['webpack', 'sourcemap']
+    },
+    webpack: {
+      devtool: 'inline-source-map'
+    },
+    webpackMiddleware: {
+      stats: 'errors-only'
     },
     reporters: ['progress'],
     port: 9876,
