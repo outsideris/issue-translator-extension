@@ -162,6 +162,14 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
   }
 };
 
+const spinner = () => {
+  const spinner = document.createElement('div');
+  spinner.className = 'translator-spinner';
+  spinner.innerHTML = '<div class="rect1"></div><div class="rect2"></div><div class="rect3"></div>' +
+                      '<div class="rect4"></div><div class="rect5"></div>';
+  return spinner;
+};
+
 export function enableTranslation(API_KEY, LANGUAGE) {
   const comments = document.querySelectorAll('.js-comment-container');
   if (!comments.length) { return; }
@@ -171,6 +179,23 @@ export function enableTranslation(API_KEY, LANGUAGE) {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = findCommentBody(event.target);
       const commentParts = commentBody.parentElement.querySelectorAll(markdownTagSelector());
+
+      // show spinner
+      if (commentBody.matches('td')) {
+        const tr = document.createElement('tr');
+        tr.className = 'd-block issue-translated';
+        tr.setAttribute('style', 'border-top:1px solid #eee;');
+        tr.appendChild(spinner());
+
+        commentBody.parentElement.parentElement.appendChild(tr);
+      } else if (commentBody.matches('div.comment-body')) {
+        const div = document.createElement('div');
+        div.className = 'issue-translated';
+        div.setAttribute('style', 'border-top:1px solid #eee; padding-top:8px;');
+        div.appendChild(spinner());
+
+        commentBody.appendChild(div);
+      }
 
       const promises = [...commentParts].map((c, index) => {
         return new Promise((resolve, reject) => {
@@ -186,18 +211,11 @@ export function enableTranslation(API_KEY, LANGUAGE) {
       Promise.all(promises)
         .then((html) => {
           if (commentBody.matches('td')) {
-            const tr = document.createElement('tr');
-            tr.className = 'd-block';
-            tr.setAttribute('style', 'border-top:1px solid #eee;');
-            tr.innerHTML = `<td class="${commentBody.className}">${html.join('')}</td>`;
-
-            commentBody.parentElement.parentElement.appendChild(tr);
+            const target = commentBody.parentElement.parentElement.querySelector('.issue-translated');
+            target.innerHTML = `<td class="${commentBody.className}">${html.join('')}</td>`;
           } else if (commentBody.matches('div.comment-body')) {
-            const div = document.createElement('div');
-            div.setAttribute('style', 'border-top:1px solid #eee; padding-top:8px;');
-            div.innerHTML = html.join('');
-
-            commentBody.appendChild(div);
+            const target = commentBody.querySelector('.issue-translated');
+            target.innerHTML = html.join('');
           }
         }, (reason) => {
           console.log(reason);

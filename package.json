@@ -33,7 +33,7 @@
     "build": "webpack --env.dev",
     "build:prod": "webpack --env.prod -p",
     "clean": "rimraf dist",
-    "copy-files": "cpy src/background.js src/manifest.json src/options.html src/options.js icons/*.png dist",
+    "copy-files": "cpy src/background.js src/manifest.json src/options.html src/options.js icons/*.png src/*.css dist",
     "prebuild": "npm run clean && npm run copy-files",
     "prebuild:prod": "npm run clean && npm run copy-files"
   },

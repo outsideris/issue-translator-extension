@@ -12,7 +12,8 @@
       "matches": [
         "https://github.com/*/*"
       ],
-      "js": ["issue-translator.js"]
+      "js": ["issue-translator.js"],
+      "css": ["issue-translator.css"]
     }
   ],
   "options_ui": {
