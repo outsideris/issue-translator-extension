@@ -180,6 +180,9 @@ export function enableTranslation(API_KEY, LANGUAGE) {
       const commentBody = findCommentBody(event.target);
       const commentParts = commentBody.parentElement.querySelectorAll(markdownTagSelector());
 
+      // prevent to translate twice
+      if (commentBody.parentElement.parentElement.querySelector('.issue-translated')) { return; }
+
       // show spinner
       if (commentBody.matches('td')) {
         const tr = document.createElement('tr');
