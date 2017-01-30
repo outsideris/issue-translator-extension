@@ -45,6 +45,12 @@ describe('normalizeMarkdownSyntax', () => {
     expect(result).to.equal('FYI - 이전 디버그 구현은 V8 **5.8**까지 지연되었습니다.');
   });
 
+  it('should remove a whiteapace between unmatched **', () => {
+    const text = '**What does this PR do? ** and ** what ** is';
+    const result = normalizeMarkdownSyntax(text);
+    expect(result).to.equal('**What does this PR do?** and **what** is');
+  });
+
   it('should remove a whiteapace between __', () => {
     const text = 'FYI - 이전 디버그 구현은 V8 __ 5.8 __까지 지연되었습니다.';
     const result = normalizeMarkdownSyntax(text);
@@ -73,6 +79,18 @@ describe('normalizeMarkdownSyntax', () => {
     const text = '* the last ``release`';
     const result = normalizeMarkdownSyntax(text);
     expect(result).to.equal('* the last `release`');
+  });
+
+  it('should remove whitespaces in a link placeholder', () => {
+    const text = '[here](chrome- extension-it4g-link0)';
+    const result = normalizeMarkdownSyntax(text);
+    expect(result).to.equal('[here](chrome-extension-it4g-link0)');
+  });
+
+  it('should remove whitespaces in a image placeholder', () => {
+    const text = '[here](chrome- extension- it4g-img0)';
+    const result = normalizeMarkdownSyntax(text);
+    expect(result).to.equal('[here](chrome-extension-it4g-img0)');
   });
 });
 

@@ -123,7 +123,7 @@ export function normalizeMarkdownSyntax(text) {
     // sometimes, a trailing whitespace for heading, `#### title`, is removed, so this insert it.
     .replace(/(^#{1,6})([^\s^#\\])/g, '$1 $2')
     // remove whitespaces from `** text **` or `__ text __`
-    .replace(/([\*\_]{2})\s(.+?)\s([\*\_]{2})/g, '$1$2$3')
+    .replace(/([\*\_]{2})\s?(.+?)\s?([\*\_]{2})/g, '$1$2$3')
     // remove whitespaces from `~~text ~~`
     .replace(/([\~]{2})\s?(.+?)\s?([\~]{2})/g, '$1$2$3')
     // sometimes `</g-emoji>` become like `</ g - emoji>`
@@ -131,7 +131,10 @@ export function normalizeMarkdownSyntax(text) {
     // In sub-list, Google API returns non-breaking spaces instead speaces.
     .replace(new RegExp(String.fromCharCode(160), 'g'), ' ')
     // sometimes, Google makes a backtick to double backtick
-    .replace(/``/g, '`');
+    .replace(/``/g, '`')
+    // sometimes. Google add a whitespace in PLACEHOLDER
+    .replace(/(\()\s?(chrome)\s?(-)\s?(extension)\s?(-)\s?(it4g)\s?(-)\s?(img[0-9]+)(\))/g, '$1$2$3$4$5$6$7$8$9')
+    .replace(/(\()\s?(chrome)\s?(-)\s?(extension)\s?(-)\s?(it4g)\s?(-)\s?(link[0-9]+)(\))/g, '$1$2$3$4$5$6$7$8$9');
 };
 
 const regexpMarkdownLink = /(\[.+?\]\()(.+?)(\))/g;
@@ -163,8 +166,8 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
 
         if (c.matches('ol, ul')) {
           // keep a trailing whitespace in list
-          translated = translated.replace(/([0-9]+\.)(`)/g, '$1 $2')
-                                 .replace(/(\*)(`)/g, '$1 $2');
+          translated = translated.replace(/([0-9]+\.)([^\s]+)/g, '$1 $2')
+                                 .replace(/(\*)([^\s]+)/g, '$1 $2');
         }
         return md.render(translated);
       });
