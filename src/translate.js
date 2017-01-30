@@ -1,10 +1,10 @@
 import markdownit from 'markdown-it';
 import toMarkdown from 'to-markdown';
+import escapeStringRegexp from 'escape-string-regexp';
 
 const md = markdownit({html: true});
 
 const regexpCode = /^(<p><code>)(.*)(<\/code><\/p>$)/;
-const regexpMarkdownLink = /(\[.+?\]\()(.+?)(\))/g;
 
 const isTranslateButton = (elem) => {
   return elem.matches('.translate');
@@ -90,13 +90,19 @@ export function extractImagesAndLinks(markdownText) {
   // e.g. when the link contains anchor like `url#xxx`, it will be separated like `[text](url) # xxx`
   // So, this save the links and then replace it as index numbers like `[text](1)` or `[text](2)`.
   // And then, restore it later.
-  let links = replacedMarkdownText.match(regexpMarkdownLink)
-  if (links) {
-    links = links.map(link => link.replace(regexpMarkdownLink, (matched, $1, $2) => $2) );
-
+  const matchedUrl = md.linkify.match(replacedMarkdownText);
+  const urls = matchedUrl ? matchedUrl.map(match => match.url) : null;
+  let links = [];
+  if (urls) {
     let count = 0;
-    replacedMarkdownText = replacedMarkdownText.replace(regexpMarkdownLink, (mached, $1, $2, $3) => {
-      return `${$1}${LINK_PLACEHOLDER}${count++}${$3}`;
+    urls.forEach( (url) => {
+      const re = new RegExp(`(\\]\\()${escapeStringRegexp(url)}(\\))`);
+      if (re.test(replacedMarkdownText)) {
+        replacedMarkdownText = replacedMarkdownText.replace(re, (matched, $1, $2) => {
+          return `${$1}${LINK_PLACEHOLDER}${count++}${$2}`
+        });
+        links.push(url);
+      }
     });
   }
 
@@ -128,12 +134,15 @@ export function normalizeMarkdownSyntax(text) {
     .replace(/``/g, '`');
 };
 
+const regexpMarkdownLink = /(\[.+?\]\()(.+?)(\))/g;
 export function restoreImagesAndLinks(text, links = [], images = []) {
   return text
     // restore links
     .replace(regexpMarkdownLink, (mached, $1, $2, $3) =>
       `${$1}${links[$2.replace(new RegExp(`${LINK_PLACEHOLDER}([0-9]+)`, 'g'), '$1')]}${$3}`
     )
+    // fallback to restore links
+    .replace(new RegExp(`\\(${LINK_PLACEHOLDER}([0-9]+)\\)`, 'g'), (matched, $1) => `${links[$1]} `)
     // restore images
     .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1]);
 };

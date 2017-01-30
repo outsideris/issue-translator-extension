@@ -98,6 +98,22 @@ describe('extractImagesAndLinks', () => {
     expect(links[0]).to.equal('https://github.com/nodejs/node-v0.x-archive/pull/7533');
     expect(links[1]).to.equal('https://github.com');
   });
+
+  it('should replace complex url in links with index', () => {
+    const text = `[here](http://www.timeanddate.com/worldclock?msg=Node.js+Foundation(CTC)+Meeting+2017-01-18)`;
+    const {replacedMarkdownText, links} = extractImagesAndLinks(text);
+    expect(replacedMarkdownText).to.equal('[here](chrome-extension-it4g-link0)');
+    expect(links).to.have.lengthOf(1);
+    expect(links[0]).to.equal('http://www.timeanddate.com/worldclock?msg=Node.js+Foundation(CTC)+Meeting+2017-01-18');
+  });
+
+  it('should replace just url in links with index', () => {
+    const text = `[https://github.com](https://github.com)`;
+    const {replacedMarkdownText, links} = extractImagesAndLinks(text);
+    expect(replacedMarkdownText).to.equal('[https://github.com](chrome-extension-it4g-link0)');
+    expect(links).to.have.lengthOf(1);
+    expect(links[0]).to.equal('https://github.com');
+  });
 });
 
 describe('restoreImagesAndLinks', () => {
@@ -114,5 +130,12 @@ describe('restoreImagesAndLinks', () => {
     const result = restoreImagesAndLinks(text, links);
     expect(result).to.equal('info: [nodejs/node-v0.x-archive#7533](https://github.com/nodejs/pull/7533)' +
                             ' and [here](https://github.com)');
+  });
+
+  it('should handle broken link syntax', () => {
+    const text = 'see #4330 (chrome-extension-it4g-link0)is';
+    const links = ['https://github.com/nodejs/pull/7533'];
+    const result = restoreImagesAndLinks(text, links);
+    expect(result).to.equal('see #4330 https://github.com/nodejs/pull/7533 is');
   });
 });
