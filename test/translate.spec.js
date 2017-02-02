@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 
-import { normalizeMarkdownSyntax, extractImagesAndLinks, restoreImagesAndLinks } from '../src/translate'
+import { normalizeMarkdownSyntax, extractImagesAndLinks,
+         restoreImagesAndLinks, stripTags } from '../src/translate'
 
 describe('normalizeMarkdownSyntax', () => {
   it('should remove in link, [] ()', () => {
@@ -154,6 +155,16 @@ describe('restoreImagesAndLinks', () => {
     const text = 'see #4330 (chrome-extension-it4g-link0)is';
     const links = ['https://github.com/nodejs/pull/7533'];
     const result = restoreImagesAndLinks(text, links);
-    expect(result).to.equal('see #4330 https://github.com/nodejs/pull/7533 is');
+    expect(result).to.equal('see #4330 (https://github.com/nodejs/pull/7533 )is');
+  });
+});
+
+describe('stripTags', () => {
+  it('should remove <g-emoji> tags', () => {
+    const text = '</p>EventEmitters with Observables <g-emoji alias="+1" ' +
+                 'fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f44d.png" ' +
+                 'ios-version="6.0">👍</g-emoji></p>';
+    const result = stripTags(text);
+    expect(result).to.equal('</p>EventEmitters with Observables 👍</p>');
   });
 });

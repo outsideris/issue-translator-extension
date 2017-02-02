@@ -71,7 +71,15 @@ const translate = (text, API_KEY, LANGUAGE) => {
     });
 };
 
-const convertTextToMarkdown = (text) => toMarkdown(text.replace(/<br>/g, ''), {gfm: true});
+export function stripTags(html) {
+  // some tags effect a result of translationg
+  return html
+    .replace(/<br>/g, '')
+    .replace(/<g-emoji.+?"\s*>/g, '')
+    .replace(/<\/g-emoji>/g, '');
+};
+
+const convertTextToMarkdown = (text) => toMarkdown(stripTags(text), {gfm: true});
 
 const regexpMarkdownImage = /(!\[.+?\]\()(.+?)(\))/g;
 const IMAGE_PLACEHOLDER = 'chrome-extension-it4g-img';
