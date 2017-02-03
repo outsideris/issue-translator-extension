@@ -2,7 +2,7 @@ import markdownit from 'markdown-it';
 import toMarkdown from 'to-markdown';
 import escapeStringRegexp from 'escape-string-regexp';
 
-const md = markdownit({html: true});
+const md = markdownit({html: true, linkify: true});
 
 const regexpCode = /^(<p><code>)(.*)(<\/code><\/p>$)/;
 
@@ -153,7 +153,7 @@ export function restoreImagesAndLinks(text, links = [], images = []) {
       `${$1}${links[$2.replace(new RegExp(`${LINK_PLACEHOLDER}([0-9]+)`, 'g'), '$1')]}${$3}`
     )
     // fallback to restore links
-    .replace(new RegExp(`\\(${LINK_PLACEHOLDER}([0-9]+)\\)`, 'g'), (matched, $1) => `${links[$1]} `)
+    .replace(new RegExp(`${LINK_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => `${links[$1]} `)
     // restore images
     .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1]);
 };
