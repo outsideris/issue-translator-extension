@@ -82,8 +82,8 @@ export function stripTags(html) {
 const convertTextToMarkdown = (text) => toMarkdown(stripTags(text), {gfm: true});
 
 const regexpMarkdownImage = /(!\[.+?\]\()(.+?)(\))/g;
-const IMAGE_PLACEHOLDER = 'chrome-extension-it4g-img';
-const LINK_PLACEHOLDER = 'chrome-extension-it4g-link';
+const IMAGE_PLACEHOLDER = '🔀';
+const LINK_PLACEHOLDER = '🆕';
 export function extractImagesAndLinks(markdownText) {
   let replacedMarkdownText = markdownText;
   // Keep images, `![]()`, in advanced and replace it with placeholder, because of it isn't needed to translate.
