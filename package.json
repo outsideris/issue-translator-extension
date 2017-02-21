@@ -1,6 +1,6 @@
 {
   "name": "issue-translator-for-github-chrome-extension",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Issue Translator for GitHub",
   "main": "background.js",
   "private": true,
