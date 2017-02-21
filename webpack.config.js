@@ -11,5 +11,10 @@ module.exports = env => {
       pathinfo: !env.prod,
     },
     devtool: env.prod ? 'source-map' : 'eval',
+    module: {
+      rules: [
+        {test: /\.js$/, use: ['babel-loader'], exclude: /node_modules/}
+      ]
+    }
   };
 };
