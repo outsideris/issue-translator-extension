@@ -17,7 +17,7 @@ If you have API key:
 Now, you can see a translation button on GitHub.
 
 == Development
-To build for testing, run following command:
+To build, run following command:
 
 ----
 $ npm run build
@@ -28,12 +28,6 @@ It makes built files in `dist/`, so you should import `dist/` directory in your 
 And run following command for unit testing.
 ----
 $ npm test
-----
-
-== Production
-To build for production, run following command:
-----
-$ npm run build:prod
 ----
 
 == Credits

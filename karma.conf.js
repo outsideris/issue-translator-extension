@@ -1,7 +1,7 @@
 module.exports = function(config) {
   config.set({
     basePath: '',
-    frameworks: ['mocha'],
+    frameworks: ['browserify', 'mocha'],
     files: [
       'src/translate.js',
       'test/**/*.spec.js'
@@ -11,14 +11,12 @@ module.exports = function(config) {
       'background.js'
     ],
     preprocessors: {
-      'src/**/*.js': ['webpack', 'sourcemap'],
-      'test/**/*.js': ['webpack', 'sourcemap']
+      'src/**/*.js': ['browserify'],
+      'test/**/*.js': ['browserify']
     },
-    webpack: {
-      devtool: 'inline-source-map'
-    },
-    webpackMiddleware: {
-      stats: 'errors-only'
+    browserify: {
+      debug: true,
+      transform: ['babelify']
     },
     reporters: ['progress'],
     port: 9876,
