@@ -41,7 +41,7 @@ const findCommentBody = (button) => {
 
 const markdownTagSelector = () => {
   const tags = ['p', 'ul', 'ol', 'blockquote', 'div.highlight', 'pre', 'div.email-fragment', 'table',
-                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'details']
+                'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'details', 'div.border']
   return tags.map((t) => { return 'td>'+t; })
              .concat(tags.map((t) => { return '.comment-body>'+t; }))
              .join(', ');
@@ -155,7 +155,7 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
   const html = c.outerHTML.replace(/\n/g, '');
 
   if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight') ||
-      c.matches('table') || c.matches('hr') || c.matches('details')) {
+      c.matches('table') || c.matches('hr') || c.matches('details') || c.matches('div.border')) {
     return new Promise((resolve) => resolve(c.outerHTML));
   } else { // other tags
     const {replacedMarkdownText, images, links} = extractImagesAndLinks(convertTextToMarkdown(c.outerHTML));
