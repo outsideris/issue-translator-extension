@@ -110,6 +110,13 @@ export function extractImagesAndLinks(markdownText) {
   return {replacedMarkdownText, images, links};
 };
 
+export function normalizeHtml(html) {
+  return html
+    // remove <span class="handle"><svg/></span> in list
+    // it broken translated text and doesn't need it
+    .replace(/<span\s+class="handle">.+?<\/span>/g, '')
+};
+
 export function normalizeMarkdownSyntax(text) {
   return text
     // Normalizing text because Google insert/remove an whitespace.
@@ -158,7 +165,9 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
       c.matches('table') || c.matches('hr') || c.matches('details') || c.matches('div.border')) {
     return new Promise((resolve) => resolve(c.outerHTML));
   } else { // other tags
-    const {replacedMarkdownText, images, links} = extractImagesAndLinks(convertTextToMarkdown(c.outerHTML));
+    const normalizedHtml = normalizeHtml(c.outerHTML);
+    const markdownToTranslate = convertTextToMarkdown(normalizedHtml);
+    const {replacedMarkdownText, images, links} = extractImagesAndLinks(markdownToTranslate);
 
     return translate(replacedMarkdownText, API_KEY, LANGUAGE)
       .then(function(result) {
