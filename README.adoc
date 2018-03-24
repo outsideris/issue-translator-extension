@@ -6,13 +6,12 @@ Chrome extension - Translates issues, pull requests and comments on GitHub for n
 
 image:https://raw.githubusercontent.com/outsideris/issue-translator-extention/master/screenshots/demo.gif[]
 
-==== CAUTION: This is using link:https://cloud.google.com/translate/#premium-edition-beta[Google CLOUD TRANSLATION API Premium Edition], but it is still beta. Therefore, users have to get API key from Google after the users by filling the form. That's WHY I didn't publish on Chrome Web Store yet.
+=== How to get a new API key for Google Cloud Translation
 
-If you have API key:
-
-1. Download [the released file] and extract it.
-2. In link:chrome://extensions/[] of your Chrome, click `load unpacked extension` and pick above folder. (You have to turn on developer mode)
-1. Click options of this extension, enter your API key and choose your language which translates to.
+1. Make link:https://console.cloud.google.com/projectcreate[a new project in Google Cloud Plaform].
+1. Enable link:https://console.cloud.google.com/apis/library/translate.googleapis.com/[Google Cloud Translation API] for the project.
+1. Make a new API key in link:https://console.cloud.google.com/apis/credentials[Credentials].
+1. Enter the API key in options for this Chrome extension.
 
 Now, you can see a translation button on GitHub.
 
