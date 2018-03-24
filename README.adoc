@@ -6,6 +6,8 @@ Chrome extension - Translates issues, pull requests and comments on GitHub for n
 
 image:https://raw.githubusercontent.com/outsideris/issue-translator-extention/master/screenshots/demo.gif[]
 
+You can download it in link:https://chrome.google.com/webstore/detail/issues-translator-for-git/modnbinffbkbfhoonoakgdmlhdlhnobk[Chrome Web Store].
+
 === How to get a new API key for Google Cloud Translation
 
 1. Make link:https://console.cloud.google.com/projectcreate[a new project in Google Cloud Plaform].
