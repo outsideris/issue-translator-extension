@@ -197,7 +197,7 @@ export function enableTranslation(API_KEY, LANGUAGE) {
   if (!comments.length) { return; }
   insertTranslateButton(comments);
 
-  document.querySelector('.js-discussion').addEventListener('click', (event) => {
+  document.querySelector('body').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = findCommentBody(event.target);
       const commentParentClone = commentBody.parentElement.cloneNode(true)
