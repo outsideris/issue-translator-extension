@@ -193,7 +193,7 @@ const spinner = () => {
 };
 
 export function enableTranslation(API_KEY, LANGUAGE) {
-  const comments = document.querySelectorAll('.js-comment-container');
+  const comments = document.querySelectorAll('.js-comment-container, .js-timeline-item');
   if (!comments.length) { return; }
   insertTranslateButton(comments);
 
