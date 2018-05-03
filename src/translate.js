@@ -200,18 +200,18 @@ export function enableTranslation(API_KEY, LANGUAGE) {
   document.querySelector('body').addEventListener('click', (event) => {
     if (isTranslateButton(event.target) || isTranslateButton(event.target.parentNode)) {
       const commentBody = findCommentBody(event.target);
-      const commentParentClone = commentBody.parentElement.cloneNode(true)
+      const commentBodyClone = commentBody.cloneNode(true)
       // sometimes, there is textNode which isn't in any HTML tag.
       // So, wrap it with p tag to translate it.
-      commentParentClone.querySelector('td').childNodes.forEach((n) => {
+      commentBodyClone.childNodes.forEach((n) => {
         if (n.nodeType === Node.TEXT_NODE && n.nodeValue.trim() !== '' ) {
           const wrap = document.createElement('p');
           wrap.innerHTML = n.nodeValue.trim();
-          commentParentClone.querySelector('td').replaceChild(wrap, n);
+          commentBodyClone.replaceChild(wrap, n);
         }
       });
 
-      const commentParts = commentParentClone.querySelectorAll(markdownTagSelector());
+      const commentParts = commentBodyClone.querySelectorAll(markdownTagSelector());
       const commentWrapper = commentBody.parentElement.parentElement;
 
       // prevent to translate twice
