@@ -57,8 +57,10 @@ const translate = (text, API_KEY, LANGUAGE) => {
   return fetch(`https://translation.googleapis.com/language/translate/v2/`, options)
     .then((response) => {
       if (response.status !== 200) {
-        console.log(`Google Translation error: ${response.status}`);
-        return;
+        return response.json()
+          .then((body) => {
+            console.error(`Google Translation ${response.status} error: ${body.error.message}`);
+          });
       }
       return response.json();
     });
@@ -260,7 +262,7 @@ export function enableTranslation(API_KEY, LANGUAGE) {
             target.innerHTML = html.join('');
           }
         }, (reason) => {
-          console.log(reason);
+          console.error(reason);
         });
     }
   });
