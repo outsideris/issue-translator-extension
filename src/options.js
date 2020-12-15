@@ -4,20 +4,12 @@ function save_options() {
   const sourcelang = document.getElementById('sourcelang').value;
   const targetlang = document.getElementById('targetlang').value;
 
-  // test
-  console.warn('>>>>> token:', token);
-  console.warn('>>>>> sourcelang:', sourcelang);
-  console.warn('>>>>> targetlang:', targetlang);
-
   chrome.storage.sync.set({
     token: token,
     sourcelang: sourcelang,
     targetlang: targetlang
   }, function() {
     const status = document.getElementById('status');
-
-    console.warn('>>>>> storage sync set:', status);
-
     status.textContent = 'Options saved.';
     setTimeout(() => { status.textContent = ''; }, 750);
   });
