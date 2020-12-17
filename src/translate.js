@@ -47,10 +47,10 @@ const markdownTagSelector = () => {
              .join(', ');
 };
 
-const translate = (text, API_KEY, LANGUAGE) => {
+const translate = (text, API_KEY, SOURCE_LANG, TARGET_LANG) => {
   const options = {
     method: 'POST',
-    body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=en&target=${LANGUAGE}&format=text`, // `format=text` keeps new line characters
+    body: `key=${API_KEY}&q=${encodeURIComponent(text)}&source=${SOURCE_LANG}&target=${TARGET_LANG}&format=text`, // `format=text` keeps new line characters
     headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8;' }
   };
 
@@ -160,7 +160,7 @@ export function restoreImagesAndLinks(text, links = [], images = []) {
     .replace(new RegExp(`${IMAGE_PLACEHOLDER}([0-9]+)`, 'g'), (matched, $1) => images[$1]);
 };
 
-const translateHTML = (c, API_KEY, LANGUAGE) => {
+const translateHTML = (c, API_KEY, SOURCE_LANG, TARGET_LANG) => {
   const html = c.outerHTML.replace(/\n/g, '');
 
   if (regexpCode.test(html) || c.matches('pre') || c.matches('div.highlight') ||
@@ -171,7 +171,7 @@ const translateHTML = (c, API_KEY, LANGUAGE) => {
     const markdownToTranslate = convertTextToMarkdown(normalizedHtml);
     const {replacedMarkdownText, images, links} = extractImagesAndLinks(markdownToTranslate);
 
-    return translate(replacedMarkdownText, API_KEY, LANGUAGE)
+    return translate(replacedMarkdownText, API_KEY, SOURCE_LANG, TARGET_LANG)
       .then(function(result) {
         let translated = normalizeMarkdownSyntax(result.data.translations[0].translatedText);
         translated = restoreImagesAndLinks(translated, links, images);
@@ -194,7 +194,7 @@ const spinner = () => {
   return spinner;
 };
 
-export function enableTranslation(API_KEY, LANGUAGE) {
+export function enableTranslation(API_KEY, SOURCE_LANG, TARGET_LANG) {
   const commentSelector = [
     '.js-comment-container',
     '.js-timeline-item',
@@ -248,7 +248,7 @@ export function enableTranslation(API_KEY, LANGUAGE) {
           const delay = (index/10) * 1000;
           setTimeout(resolve, delay);
         }).then(() => {
-          return translateHTML(c, API_KEY, LANGUAGE);
+          return translateHTML(c, API_KEY, SOURCE_LANG, TARGET_LANG);
         });
       });
 

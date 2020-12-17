@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
-  "name": "Issues translator for GitHub",
-  "version": "0.5.2",
-  "description": "Translate issues, pull requests and comments on GitHub",
-  "homepage_url": "https://github.com/outsideris/issue-translator-extention",
+  "name": "Issues translator for GitHub - Yet Another",
+  "version": "0.5.3",
+  "description": "Translate issues, pull requests and comments on GitHub; Enhancing with the source language selection",
+  "homepage_url": "https://github.com/gitple/issue-translator-extention",
   "icons": {
     "128": "translation-128.png"
   },

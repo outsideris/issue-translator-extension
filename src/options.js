@@ -1,10 +1,13 @@
 // Saves options to chrome.storage
 function save_options() {
   const token = document.getElementById('token').value;
-  const language = document.getElementById('lang').value;
+  const sourcelang = document.getElementById('sourcelang').value;
+  const targetlang = document.getElementById('targetlang').value;
+
   chrome.storage.sync.set({
     token: token,
-    lang: language
+    sourcelang: sourcelang,
+    targetlang: targetlang
   }, function() {
     const status = document.getElementById('status');
     status.textContent = 'Options saved.';
@@ -17,10 +20,12 @@ function save_options() {
 function restore_options() {
   chrome.storage.sync.get({
     token: '',
-    lang: 'ko'
+    sourcelang: 'en',
+    targetlang: 'ko'
   }, function(items) {
     document.getElementById('token').value = items.token;
-    document.getElementById('lang').value = items.lang;
+    document.getElementById('sourcelang').value = items.sourcelang;
+    document.getElementById('targetlang').value = items.targetlang;
   });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
