@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Issues translator for GitHub",
   "version": "0.5.2",
   "description": "Translate issues, pull requests and comments on GitHub",
@@ -10,22 +10,23 @@
   "content_scripts": [
     {
       "matches": [
-        "https://github.com/*/*"
+        "*://github.com/*"
       ],
       "js": ["issue-translator.js"],
       "css": ["issue-translator.css"]
     }
   ],
   "options_ui": {
-    "page": "options.html",
-    "chrome_style": true
+    "page": "options.html"
   },
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "service_worker": "background.js"
   },
   "permissions": [
     "storage",
     "webNavigation"
+  ],
+  "host_permissions": [
+    "*://github.com/*"
   ]
 }
