@@ -16,7 +16,7 @@ chrome.storage.sync.get({
   }
 });
 
-chrome.extension.onMessage.addListener(function(msg) {
+chrome.runtime.onMessage.addListener(function(msg) {
   if (msg.action === 'rerun') {
     if (msg.url === location.href) {
       enableTranslation(API_KEY, LANGUAGE);
