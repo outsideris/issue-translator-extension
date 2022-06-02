@@ -2,9 +2,14 @@
   "name": "issue-translator-for-github-chrome-extension",
   "version": "0.5.2",
   "description": "Issue Translator for GitHub",
-  "main": "background.js",
+  "source": "src/app.js",
+  "app": "dist/issue-translator.js",
   "private": true,
+  "targets": {
+    "app": {}
+  },
   "dependencies": {
+    "@swc/helpers": "^0.3.17",
     "escape-string-regexp": "^5.0.0",
     "markdown-it": "^13.0.1",
     "to-markdown": "^3.1.1"
@@ -24,15 +29,15 @@
     "karma-sourcemap-loader": "^0.3.7",
     "mocha": "^10.0.0",
     "npm-run-all": "^4.1.3",
-    "parcel-bundler": "^1.8.1",
+    "parcel": "^2.6.0",
     "rimraf": "^3.0.2",
     "watchify": "^4.0.0"
   },
   "scripts": {
     "test": "karma start",
-    "build": "parcel build src/app.js -o issue-translator --detailed-report --target browser",
+    "build": "parcel build src/app.js --detailed-report --no-source-maps",
     "clean": "rimraf dist",
-    "copy-files": "cpy src/background.js src/manifest.json src/options.html src/options.js icons/*.png src/*.css dist",
+    "copy-files": "cpy --flat src/background.js src/manifest.json src/options.html src/options.js icons/*.png src/*.css dist",
     "prebuild": "npm run clean && npm run copy-files"
   },
   "repository": {
@@ -45,5 +50,6 @@
   "bugs": {
     "url": "https://github.com/outsideris/issue-translator-extention/issues"
   },
-  "homepage": "https://github.com/outsideris/issue-translator-extention#readme"
+  "homepage": "https://github.com/outsideris/issue-translator-extention#readme",
+  "browserslist": "> 0.5%, last 2 versions, not dead"
 }
