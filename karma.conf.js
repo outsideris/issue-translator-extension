@@ -1,22 +1,26 @@
 module.exports = function(config) {
   config.set({
     basePath: '',
-    frameworks: ['browserify', 'mocha'],
+    frameworks: ['mocha'],
+    plugins: [
+      'karma-chrome-launcher',
+      'karma-webpack',
+      'karma-mocha'
+    ],
     files: [
       'src/translate.js',
-      'test/**/*.spec.js'
+      'test/**/*.spec.js',
     ],
     exclude: [
       'options.js',
       'background.js'
     ],
     preprocessors: {
-      'src/**/*.js': ['browserify'],
-      'test/**/*.js': ['browserify']
+      'src/**/*.js': ['webpack'],
+      'test/**/*.js': ['webpack'],
     },
-    browserify: {
-      debug: true,
-      transform: ['babelify']
+    webpack: {
+      "mode": "development",
     },
     reporters: ['progress'],
     port: 9876,
