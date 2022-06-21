@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Issues translator for GitHub",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Translate issues, pull requests and comments on GitHub",
   "homepage_url": "https://github.com/outsideris/issue-translator-extention",
   "icons": {

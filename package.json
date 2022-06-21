@@ -1,6 +1,6 @@
 {
   "name": "issue-translator-for-github-chrome-extension",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Issue Translator for GitHub",
   "source": "src/app.js",
   "app": "dist/issue-translator.js",
