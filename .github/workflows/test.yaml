@@ -1,0 +1,36 @@
+name: Unit tests
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*.*'
+  pull_request:
+
+jobs:
+  unit-test:
+    name: Unit tests with Node.js v${{ matrix.node }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node:
+          - 16
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: 'Cache node_modules'
+        uses: actions/cache@v3
+        with:
+          path: '~/.npm'
+          key: ${{ runner.os }}-node-v${{ matrix.node }}-220621-${{ hashFiles('**/package-lock.json') }} }}
+          restore-keys: |
+            ${{ runner.os }}-node-v${{ matrix.node }}-220621-
+      - run: npm ci
+      - name: unit test
+        run: npm run test -- --forbid-only
