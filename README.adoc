@@ -4,7 +4,7 @@ Chrome extension - Translates issues, pull requests and comments on GitHub for n
 
 == Usage
 
-image:https://raw.githubusercontent.com/outsideris/issue-translator-extention/master/screenshots/demo.gif[]
+image:https://raw.githubusercontent.com/outsideris/issue-translator-extention/main/screenshots/demo.gif[]
 
 You can download it in link:https://chrome.google.com/webstore/detail/issues-translator-for-git/modnbinffbkbfhoonoakgdmlhdlhnobk[Chrome Web Store].
 
