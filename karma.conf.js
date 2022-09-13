@@ -1,3 +1,5 @@
+const browsers = process.env.CI ? ['ChromeHeadless'] : ['Chrome'];
+
 module.exports = function(config) {
   config.set({
     basePath: '',
@@ -27,7 +29,7 @@ module.exports = function(config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: false,
-    browsers: ['Chrome'],
+    browsers,
     singleRun: true,
     concurrency: Infinity
   })
