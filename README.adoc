@@ -2,9 +2,11 @@
 
 Chrome extension - Translates issues, pull requests and comments on GitHub for non-English-based programmers
 
+image:https://github.com/outsideris/issue-translator-extension/actions/workflows/test.yaml/badge.svg["Unit tests", link="https://github.com/outsideris/issue-translator-extension/actions/workflows/test.yaml"]
+
 == Usage
 
-image:https://raw.githubusercontent.com/outsideris/issue-translator-extention/main/screenshots/demo.gif[]
+image:https://raw.githubusercontent.com/outsideris/issue-translator-extension/main/screenshots/demo.gif[]
 
 You can download it in link:https://chrome.google.com/webstore/detail/issues-translator-for-git/modnbinffbkbfhoonoakgdmlhdlhnobk[Chrome Web Store].
 
